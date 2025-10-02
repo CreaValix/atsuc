@@ -20,6 +20,7 @@ button readout from ~160 µS to ~40 µS.
 #define TIMING_QUICK 1
 #define POWERSAVE 1
 //#define BTN_AB_LAYOUT_XBOX 1
+//#define BTN_DIRECTIONS_AS_DPAD 1
 
 #define LED_DIR_REG DDRD
 #define LED_DIR_PIN (1 << DDD0)
@@ -55,14 +56,24 @@ PROGMEM const char usbHidReportDescriptor[60] = {
     0x05, 0x01, //   USAGE_PAGE (Generic Desktop)
     0x09, 0x01, //   USAGE (Pointer)
     0xA1, 0x00, //   COLLECTION (Physical)
+#ifdef BTN_DIRECTIONS_AS_DPAD
+    0x09, 0x90, //     USAGE (D-Pad Up), Up       -> D-Pad Up
+    0x09, 0x91, //     USAGE (D-Pad Down), Down   -> D-Pad Down
+    0x09, 0x92, //     USAGE (D-Pad Left), Left   -> D-Pad Left
+    0x09, 0x93, //     USAGE (D-Pad Right), Right -> D-Pad Right
+#else
     0x05, 0x09, //     USAGE_PAGE (Button)
     0x09, 0x13, //     USAGE (Button 13), Up     -> Trigger Happy 3
     0x09, 0x14, //     USAGE (Button 14), Down   -> Trigger Happy 4
     0x09, 0x11, //     USAGE (Button 15), Left   -> Trigger Happy 1
     0x09, 0x12, //     USAGE (Button 16), Right  -> Trigger Happy 2
+#endif
     0x81, 0x02, //     INPUT (Data,Var,Abs)
     0xc0,       //   END COLLECTION
 
+#ifdef BTN_DIRECTIONS_AS_DPAD
+    0x05, 0x09, //   USAGE_PAGE (Button)
+#endif
 #ifdef BTN_AB_LAYOUT_XBOX
     0x09, 0x01, //   USAGE (Button 1), A       -> South
 #else
