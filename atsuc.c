@@ -19,6 +19,7 @@ button readout from ~160 µS to ~40 µS.
 */
 #define TIMING_QUICK 1
 #define POWERSAVE 1
+//#define BTN_AB_LAYOUT_XBOX 1
 
 #define LED_DIR_REG DDRD
 #define LED_DIR_PIN (1 << DDD0)
@@ -28,20 +29,49 @@ button readout from ~160 µS to ~40 µS.
 #define LED_OFF LED_OUT_REG &= ~LED_OUT_PIN
 #define LED_TOGGLE LED_OUT_REG ^= LED_OUT_PIN
 
-PROGMEM const char usbHidReportDescriptor[27] = {
+PROGMEM const char usbHidReportDescriptor[60] = {
+    // There are only buttons. So all input is digital.
+    0x14,       // LOGICAL_MINIMUM (0)
+    0x25, 0x01, // LOGICAL_MAXIMUM (1)
+    0x34,       // PHYSICAL MINIMUM (0)
+    0x45, 0x01, // PHYSICAL MAXIMUM (1)
+    0x75, 0x01, // REPORT_SIZE (1)
+
     0x05, 0x01, // USAGE_PAGE (Generic Desktop)
     0x09, 0x05, // USAGE (Gamepad)
     0xA1, 0x01, // COLLECTION (Application)
     0x05, 0x09, //   USAGE_PAGE (Button)
-    0x19, 0x01, //   USAGE_MINIMUM (1)
-    0x29, 0x0C, //   USAGE_MAXIMUM (12)
-    0x15, 0x00, //   LOGICAL_MINIMUM (0)
-    0x25, 0x01, //   LOGICAL_MAXIMUM (1)
-    0x95, 0x0C, //   REPORT_COUNT (12)
-    0x75, 0x01, //   REPORT_SIZE (1)
+#ifdef BTN_AB_LAYOUT_XBOX
+    0x09, 0x02, //   USAGE (Button 2), B       -> East
+#else
+    0x09, 0x01, //   USAGE (Button 1), B       -> South
+#endif
+    0x09, 0x05, //   USAGE (Button 5), Y       -> West
+    0x09, 0x0B, //   USAGE (Button 11), Select -> Select
+    0x09, 0x0C, //   USAGE (Button 12), Start  -> Select
+    0x95, 0x04, //   REPORT_COUNT (4)
     0x81, 0x02, //   INPUT (Data,Var,Abs)
-    0x95, 0x01, //   REPORT_COUNT (1)
-    0x75, 0x04, //   REPORT_SIZE (4)
+
+    0x05, 0x01, //   USAGE_PAGE (Generic Desktop)
+    0x09, 0x01, //   USAGE (Pointer)
+    0xA1, 0x00, //   COLLECTION (Physical)
+    0x05, 0x09, //     USAGE_PAGE (Button)
+    0x09, 0x13, //     USAGE (Button 13), Up     -> Trigger Happy 3
+    0x09, 0x14, //     USAGE (Button 14), Down   -> Trigger Happy 4
+    0x09, 0x11, //     USAGE (Button 15), Left   -> Trigger Happy 1
+    0x09, 0x12, //     USAGE (Button 16), Right  -> Trigger Happy 2
+    0x81, 0x02, //     INPUT (Data,Var,Abs)
+    0xc0,       //   END COLLECTION
+
+#ifdef BTN_AB_LAYOUT_XBOX
+    0x09, 0x01, //   USAGE (Button 1), A       -> South
+#else
+    0x09, 0x02, //   USAGE (Button 2), A       -> East
+#endif
+    0x09, 0x04, //   USAGE (Button 4), X       -> North
+    0x09, 0x07, //   USAGE (Button 7), L       -> Trigger Left
+    0x09, 0x08, //   USAGE (Button 8), R       -> Trigger Right
+    0x81, 0x02, //   INPUT (Data,Var,Abs)
     0x81, 0x03, //   INPUT (Cnst,Var,Abs), Padding to reach two bytes
     0xC0,       // END_COLLECTION
 };
