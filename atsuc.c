@@ -90,14 +90,22 @@ PROGMEM const char usbHidReportDescriptor[60] = {
 uint16_t snes_button_state = 0;
 static inline void snes_button_read();
 uint8_t led = 0;
+volatile uint8_t snes_read_status = 0;
 int __attribute__((noreturn)) main(void) {
     wdt_enable(WDTO_1S);
 #ifdef POWERSAVE
+    power_twi_disable();
+    power_timer1_disable();
+    power_spi_disable();
     ADCSRA &= (1 << ADEN);
-    power_all_disable();
+    power_adc_disable();
     sleep_enable();
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    set_sleep_mode(SLEEP_MODE_IDLE);
 #endif
+
+    // Prepare timer 0 for SNES pad read wakeup
+    OCR0A = 110;
+    TIMSK0 = (1 << OCIE0A);
 
     // Set up SNES pad pins
     PORTB = (PORTB & ~((1 << PORTB0) | (1 << PORTB1))) | (1 << PORTB2);
@@ -120,16 +128,23 @@ int __attribute__((noreturn)) main(void) {
 #ifdef POWERSAVE
         cli();
 #endif
-        if (usbInterruptIsReady()) {
+        if (usbInterruptIsReady() && snes_read_status == 0) {
+            // USB TX buffer was just sent. Wait 7 ms and refill it.
 #ifdef POWERSAVE
             sei();
 #endif
+            // 1000 ms : (16.000.000 Hz : 1024 : 110) = 7,04 ms
+            TCNT0 = 0;
+            TCCR0A = (1 << CS02) | (1 << CS00);
+            snes_read_status = 1;
+        } else if (snes_read_status == 2) {
             LED_ON;
             snes_button_read();
             usbSetInterrupt((void *)&snes_button_state, sizeof(snes_button_state));
             if (!snes_button_state) {
                 LED_OFF;
             }
+            snes_read_status = 0;
 #ifdef POWERSAVE
         } else {
             sleep_enable();
@@ -196,3 +211,9 @@ static inline void snes_button_read() {
 ISR(WDT_vect) {
 }
 #endif
+
+ISR(TIMER0_COMPA_vect) {
+    TCCR0A = 0;
+    if (snes_read_status == 1)
+        snes_read_status = 2;
+}
