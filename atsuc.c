@@ -68,7 +68,7 @@ PROGMEM const char usbHidReportDescriptor[60] = {
 #endif
     0x09, 0x05, //   USAGE (Button 5), Y       -> West
     0x09, 0x0B, //   USAGE (Button 11), Select -> Select
-    0x09, 0x0C, //   USAGE (Button 12), Start  -> Select
+    0x09, 0x0C, //   USAGE (Button 12), Start  -> Start
     0x95, 0x04, //   REPORT_COUNT (4)
     0x81, 0x02, //   INPUT (Data,Var,Abs)
 
