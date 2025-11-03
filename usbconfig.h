@@ -9,6 +9,7 @@
 
 #ifndef __usbconfig_h_included__
 #define __usbconfig_h_included__
+#include "config.h"
 
 /*
 General Description:
@@ -279,7 +280,11 @@ section at the end of this file).
  * HID class is 3, no subclass and protocol required (but may be useful!)
  * CDC class is 2, use subclass 2 and protocol 1 for ACM
  */
+#ifdef BTN_DIRECTIONS_AS_DPAD
+#define USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH    69
+#else
 #define USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH    60
+#endif
 /* Define this to the length of the HID report descriptor, if you implement
  * an HID device. Otherwise don't define it or define it to 0.
  * If you use this define, you must add a PROGMEM character array named
