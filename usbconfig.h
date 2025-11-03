@@ -281,7 +281,7 @@ section at the end of this file).
  * CDC class is 2, use subclass 2 and protocol 1 for ACM
  */
 #ifdef BTN_DIRECTIONS_AS_DPAD
-#define USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH    69
+#define USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH    79
 #else
 #define USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH    60
 #endif

@@ -19,7 +19,37 @@
 #define LED_OFF LED_OUT_REG &= ~LED_OUT_PIN
 #define LED_TOGGLE LED_OUT_REG ^= LED_OUT_PIN
 
+#ifdef BTN_DIRECTIONS_AS_DPAD
+/*
+This is a mapping table from d-pad key presses (as array index) to multiples of 45° angles.
+0 Means d-pad is not pressed. North starts at 1 and is increased clockwise.
+If two opposite direction keys are pressed, they are ignored.
+Output is pre-shifted to the higher nibble to fit in the HID report.
+*/
+PROGMEM const char dpad_keys_to_rotation[16] = {
+    //       → ← ↓ ↑ direction
+    0x00, // 0 0 0 0 0
+    0x10, // 0 0 0 1 1
+    0x50, // 0 0 1 0 5
+    0x00, // 0 0 1 1 0
+    0x70, // 0 1 0 0 7
+    0x80, // 0 1 0 1 8
+    0x60, // 0 1 1 0 6
+    0x70, // 0 1 1 1 7
+    0x30, // 1 0 0 0 3
+    0x20, // 1 0 0 1 2
+    0x40, // 1 0 1 0 4
+    0x30, // 1 0 1 1 3
+    0x00, // 1 1 0 0 0
+    0x10, // 1 1 0 1 1
+    0x50, // 1 1 1 0 5
+    0x00, // 1 1 1 1 0
+};
+
+PROGMEM const char usbHidReportDescriptor[79] = {
+#else
 PROGMEM const char usbHidReportDescriptor[60] = {
+#endif
     // There are only buttons. So all input is digital.
     0x14,       // LOGICAL_MINIMUM (0)
     0x25, 0x01, // LOGICAL_MAXIMUM (1)
@@ -46,10 +76,14 @@ PROGMEM const char usbHidReportDescriptor[60] = {
     0x09, 0x01, //   USAGE (Pointer)
     0xA1, 0x00, //   COLLECTION (Physical)
 #ifdef BTN_DIRECTIONS_AS_DPAD
-    0x09, 0x90, //     USAGE (D-Pad Up), Up       -> D-Pad Up
-    0x09, 0x91, //     USAGE (D-Pad Down), Down   -> D-Pad Down
-    0x09, 0x92, //     USAGE (D-Pad Left), Left   -> D-Pad Left
-    0x09, 0x93, //     USAGE (D-Pad Right), Right -> D-Pad Right
+    0x09, 0x39, //     USAGE (Hat switch (Dynamic Value))
+    0x15, 0x01, //     LOGICAL_MINIMUM (1)
+    0x25, 0x08, //     LOGICAL_MAXIMUM (8)
+    0x46, 0x3B, 0x01, // PHYSICAL_MAXIMUM (315)
+    0x65, 0x14, //     UNIT (English Rotation, Degrees, 1° Units)
+    0x75, 0x04, //     REPORT_SIZE (4)
+    0x95, 0x01, //     REPORT_COUNT (1)
+    0x81, 0x42, //     INPUT (Data,Var,Abs,Null)
 #else
     0x05, 0x09, //     USAGE_PAGE (Button)
     0x09, 0x13, //     USAGE (Button 13), Up     -> Trigger Happy 3
@@ -62,6 +96,12 @@ PROGMEM const char usbHidReportDescriptor[60] = {
 
 #ifdef BTN_DIRECTIONS_AS_DPAD
     0x05, 0x09, //   USAGE_PAGE (Button)
+    0x14,       //   LOGICAL_MINIMUM (0)
+    0x25, 0x01, //   LOGICAL_MAXIMUM (1)
+    0x45, 0x01, //   PHYSICAL MAXIMUM (1)
+    0x75, 0x01, //   REPORT_SIZE (1)
+    0x95, 0x04, //   REPORT_COUNT (4)
+    0x64,       //   UNIT (None)
 #endif
 #ifdef BTN_AB_LAYOUT_XBOX
     0x09, 0x01, //   USAGE (Button 1), A       -> South
@@ -194,6 +234,11 @@ static inline void snes_button_read() {
         // Clock high. Next button will be available on data.
         PORTB |= (1 << PORTB1);
     }
+#ifdef BTN_DIRECTIONS_AS_DPAD
+    snes_button_state =
+        (snes_button_state & 0xff0f) |
+        pgm_read_byte(&dpad_keys_to_rotation[(snes_button_state >> 4) & 0x000f]);
+#endif
 }
 
 #ifdef POWERSAVE
