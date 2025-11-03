@@ -242,15 +242,14 @@ int __attribute__((noreturn)) main(void) {
             }
             usb_report_id = (usb_report_id + 1) % 2;
             snes_read_status = 0;
-#ifdef POWERSAVE
-        } else {
-            sleep_enable();
-            sei();
-            sleep_cpu();
-            sleep_disable();
-            LED_TOGGLE;
-#endif
         }
+#ifdef POWERSAVE
+        sleep_enable();
+        sei();
+        sleep_cpu();
+        sleep_disable();
+        LED_TOGGLE;
+#endif
     }
 }
 
