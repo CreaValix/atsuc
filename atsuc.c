@@ -46,9 +46,9 @@ PROGMEM const char dpad_keys_to_rotation[16] = {
     0x00, // 1 1 1 1 0
 };
 
-PROGMEM const char usbHidReportDescriptor[79] = {
+PROGMEM const char usbHidReportDescriptor[150] = {
 #else
-PROGMEM const char usbHidReportDescriptor[60] = {
+PROGMEM const char usbHidReportDescriptor[116] = {
 #endif
     // There are only buttons. So all input is digital.
     0x14,       // LOGICAL_MINIMUM (0)
@@ -60,6 +60,7 @@ PROGMEM const char usbHidReportDescriptor[60] = {
     0x05, 0x01, // USAGE_PAGE (Generic Desktop)
     0x09, 0x05, // USAGE (Gamepad)
     0xA1, 0x01, // COLLECTION (Application)
+    0x85, 0x01, //   REPORT_ID (1)
     0x05, 0x09, //   USAGE_PAGE (Button)
 #ifdef BTN_AB_LAYOUT_XBOX
     0x09, 0x02, //   USAGE (Button 2), B       -> East
@@ -90,8 +91,67 @@ PROGMEM const char usbHidReportDescriptor[60] = {
     0x09, 0x14, //     USAGE (Button 14), Down   -> Trigger Happy 4
     0x09, 0x11, //     USAGE (Button 15), Left   -> Trigger Happy 1
     0x09, 0x12, //     USAGE (Button 16), Right  -> Trigger Happy 2
-#endif
     0x81, 0x02, //     INPUT (Data,Var,Abs)
+#endif
+    0xc0,       //   END COLLECTION
+
+#ifdef BTN_DIRECTIONS_AS_DPAD
+    0x05, 0x09, //   USAGE_PAGE (Button)
+    0x14,       //   LOGICAL_MINIMUM (0)
+    0x25, 0x01, //   LOGICAL_MAXIMUM (1)
+    0x45, 0x01, //   PHYSICAL MAXIMUM (1)
+    0x75, 0x01, //   REPORT_SIZE (1)
+    0x95, 0x04, //   REPORT_COUNT (4)
+    0x64,       //   UNIT (None)
+#endif
+#ifdef BTN_AB_LAYOUT_XBOX
+    0x09, 0x01, //   USAGE (Button 1), A       -> South
+#else
+    0x09, 0x02, //   USAGE (Button 2), A       -> East
+#endif
+    0x09, 0x04, //   USAGE (Button 4), X       -> North
+    0x09, 0x07, //   USAGE (Button 7), L       -> Trigger Left
+    0x09, 0x08, //   USAGE (Button 8), R       -> Trigger Right
+    0x81, 0x02, //   INPUT (Data,Var,Abs)
+    0x81, 0x03, //   INPUT (Cnst,Var,Abs), Padding to reach two bytes
+    0xC0,       // END_COLLECTION
+
+    0x05, 0x01, // USAGE_PAGE (Generic Desktop)
+    0x09, 0x05, // USAGE (Gamepad)
+    0xA1, 0x01, // COLLECTION (Application)
+    0x85, 0x02, //   REPORT_ID (2)
+    0x05, 0x09, //   USAGE_PAGE (Button)
+#ifdef BTN_AB_LAYOUT_XBOX
+    0x09, 0x02, //   USAGE (Button 2), B       -> East
+#else
+    0x09, 0x01, //   USAGE (Button 1), B       -> South
+#endif
+    0x09, 0x05, //   USAGE (Button 5), Y       -> West
+    0x09, 0x0B, //   USAGE (Button 11), Select -> Select
+    0x09, 0x0C, //   USAGE (Button 12), Start  -> Start
+    0x95, 0x04, //   REPORT_COUNT (4)
+    0x81, 0x02, //   INPUT (Data,Var,Abs)
+
+    0x05, 0x01, //   USAGE_PAGE (Generic Desktop)
+    0x09, 0x01, //   USAGE (Pointer)
+    0xA1, 0x00, //   COLLECTION (Physical)
+#ifdef BTN_DIRECTIONS_AS_DPAD
+    0x09, 0x39, //     USAGE (Hat switch (Dynamic Value))
+    0x15, 0x01, //     LOGICAL_MINIMUM (1)
+    0x25, 0x08, //     LOGICAL_MAXIMUM (8)
+    0x46, 0x3B, 0x01, // PHYSICAL_MAXIMUM (315)
+    0x65, 0x14, //     UNIT (English Rotation, Degrees, 1° Units)
+    0x75, 0x04, //     REPORT_SIZE (4)
+    0x95, 0x01, //     REPORT_COUNT (1)
+    0x81, 0x42, //     INPUT (Data,Var,Abs,Null)
+#else
+    0x05, 0x09, //     USAGE_PAGE (Button)
+    0x09, 0x13, //     USAGE (Button 13), Up     -> Trigger Happy 3
+    0x09, 0x14, //     USAGE (Button 14), Down   -> Trigger Happy 4
+    0x09, 0x11, //     USAGE (Button 15), Left   -> Trigger Happy 1
+    0x09, 0x12, //     USAGE (Button 16), Right  -> Trigger Happy 2
+    0x81, 0x02, //     INPUT (Data,Var,Abs)
+#endif
     0xc0,       //   END COLLECTION
 
 #ifdef BTN_DIRECTIONS_AS_DPAD
@@ -116,7 +176,11 @@ PROGMEM const char usbHidReportDescriptor[60] = {
     0xC0,       // END_COLLECTION
 };
 
-uint16_t snes_button_state = 0;
+struct {
+    uint8_t report_id;
+    uint16_t button_state;
+} snes_reports[2] __attribute__((packed));
+uint8_t usb_report_id = 0;
 static inline void snes_button_read();
 uint8_t led = 0;
 volatile uint8_t snes_read_status = 0;
@@ -137,9 +201,12 @@ int __attribute__((noreturn)) main(void) {
     TIMSK0 = (1 << OCIE0A);
 
     // Set up SNES pad pins
-    PORTB = (PORTB & ~((1 << PORTB0) | (1 << PORTB1))) | (1 << PORTB2);
-    DDRB = (DDRB | (1 << DDB0) | (1 << DDB1)) & ~(1 << DDB2);
+    PORTB = (PORTB & ~((1 << PORTB0) | (1 << PORTB1))) | (1 << PORTB2) | (1 << PORTB3);
+    DDRB = (DDRB | (1 << DDB0) | (1 << DDB1)) & ~((1 << DDB2) | (1 << DDB3));
     LED_DIR_REG |= LED_DIR_PIN;
+
+    snes_reports[0].report_id = 1;
+    snes_reports[1].report_id = 2;
 
     usbInit();
     // Enforce re-enumeration, do this while interrupts are disabled.
@@ -169,10 +236,11 @@ int __attribute__((noreturn)) main(void) {
         } else if (snes_read_status == 2) {
             LED_ON;
             snes_button_read();
-            usbSetInterrupt((void *)&snes_button_state, sizeof(snes_button_state));
-            if (!snes_button_state) {
+            usbSetInterrupt((void *)&(snes_reports[usb_report_id]), sizeof(snes_reports[0]));
+            if (!snes_reports[usb_report_id].button_state) {
                 LED_OFF;
             }
+            usb_report_id = (usb_report_id + 1) % 2;
             snes_read_status = 0;
 #ifdef POWERSAVE
         } else {
@@ -193,8 +261,8 @@ usbMsgLen_t usbFunctionSetup(uchar data[8]) {
     // This code is taken from the V-USB HID mouse example.
     if ((rq->bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_CLASS) {
         if (rq->bRequest == USBRQ_HID_GET_REPORT) {
-            usbMsgPtr = (void *)&snes_button_state;
-            return sizeof(snes_button_state);
+            usbMsgPtr = (void *)&(snes_reports[usb_report_id]);
+            return sizeof(snes_reports[usb_report_id]);
         } else if (rq->bRequest == USBRQ_HID_GET_IDLE) {
             usbMsgPtr = &idle_rate;
             return 1;
@@ -206,7 +274,8 @@ usbMsgLen_t usbFunctionSetup(uchar data[8]) {
 }
 
 static inline void snes_button_read() {
-    snes_button_state = 0;
+    uint16_t *button_state = &snes_reports[usb_report_id].button_state;
+    *button_state = 0;
     // Latch high, clock high. First button available on data.
     PORTB |= (1 << PORTB0) | (1 << PORTB1);
 #ifndef TIMING_QUICK
@@ -221,8 +290,8 @@ static inline void snes_button_read() {
         // Waiting 5 µS twice gets very close to 12 µS clock cycle.
         _delay_us(5);
 #endif
-        snes_button_state >>= 1;
-        snes_button_state |= (uint16_t)(~PINB & (1 << PINB2)) << (11 - PINB2);
+        *button_state >>= 1;
+        *button_state |= (((uint16_t)(~PINB)) << (11 - PINB2 - usb_report_id)) & 0x0800;
         // Clock low
         PORTB &= ~(1 << PORTB1);
 #ifndef TIMING_QUICK
@@ -235,9 +304,9 @@ static inline void snes_button_read() {
         PORTB |= (1 << PORTB1);
     }
 #ifdef BTN_DIRECTIONS_AS_DPAD
-    snes_button_state =
-        (snes_button_state & 0xff0f) |
-        pgm_read_byte(&dpad_keys_to_rotation[(snes_button_state >> 4) & 0x000f]);
+    *button_state =
+        (*button_state & 0xff0f) |
+        pgm_read_byte(&dpad_keys_to_rotation[(*button_state >> 4) & 0x000f]);
 #endif
 }
 
