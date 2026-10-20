@@ -19,6 +19,10 @@
 #define LED_OFF LED_OUT_REG &= ~LED_OUT_PIN
 #define LED_TOGGLE LED_OUT_REG ^= LED_OUT_PIN
 
+#define STATE_SEND_DATA 0
+#define STATE_WAIT_TIMER 1
+#define STATE_RESTART_TIMER 2
+
 #ifdef BTN_DIRECTIONS_AS_DPAD
 /*
 This is a mapping table from d-pad key presses (as array index) to multiples of 45° angles.
@@ -183,7 +187,7 @@ struct {
 uint8_t usb_report_id = 0;
 static inline void snes_button_read();
 uint8_t led = 0;
-volatile uint8_t snes_read_status = 0;
+volatile uint8_t snes_read_status = STATE_SEND_DATA;
 int __attribute__((noreturn)) main(void) {
     wdt_enable(WDTO_1S);
 #ifdef POWERSAVE
@@ -224,7 +228,7 @@ int __attribute__((noreturn)) main(void) {
 #ifdef POWERSAVE
         cli();
 #endif
-        if (usbInterruptIsReady() && snes_read_status == 0) {
+        if (usbInterruptIsReady() && snes_read_status == STATE_SEND_DATA) {
             // USB TX buffer was just sent. Wait 7 ms and refill it.
 #ifdef POWERSAVE
             sei();
@@ -232,8 +236,8 @@ int __attribute__((noreturn)) main(void) {
             // 1000 ms : (16.000.000 Hz : 1024 : 110) = 7,04 ms
             TCNT0 = 0;
             TCCR0A = (1 << CS02) | (1 << CS00);
-            snes_read_status = 1;
-        } else if (snes_read_status == 2) {
+            snes_read_status = STATE_WAIT_TIMER;
+        } else if (snes_read_status == STATE_RESTART_TIMER) {
             LED_ON;
             snes_button_read();
             usbSetInterrupt((void *)&(snes_reports[usb_report_id]), sizeof(snes_reports[0]));
@@ -241,7 +245,7 @@ int __attribute__((noreturn)) main(void) {
                 LED_OFF;
             }
             usb_report_id = (usb_report_id + 1) % 2;
-            snes_read_status = 0;
+            snes_read_status = STATE_SEND_DATA;
         }
 #ifdef POWERSAVE
         sleep_enable();
@@ -316,6 +320,6 @@ ISR(WDT_vect) {
 
 ISR(TIMER0_COMPA_vect) {
     TCCR0A = 0;
-    if (snes_read_status == 1)
-        snes_read_status = 2;
+    if (snes_read_status == STATE_WAIT_TIMER)
+        snes_read_status = STATE_RESTART_TIMER;
 }
