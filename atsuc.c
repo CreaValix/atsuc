@@ -33,26 +33,26 @@ Output is pre-shifted to the higher nibble to fit in the HID report.
 PROGMEM const char dpad_keys_to_rotation[16] = {
     //       → ← ↓ ↑ direction
     0x00, // 0 0 0 0 0
-    0x10, // 0 0 0 1 1
-    0x50, // 0 0 1 0 5
+    0x01, // 0 0 0 1 1
+    0x05, // 0 0 1 0 5
     0x00, // 0 0 1 1 0
-    0x70, // 0 1 0 0 7
-    0x80, // 0 1 0 1 8
-    0x60, // 0 1 1 0 6
-    0x70, // 0 1 1 1 7
-    0x30, // 1 0 0 0 3
-    0x20, // 1 0 0 1 2
-    0x40, // 1 0 1 0 4
-    0x30, // 1 0 1 1 3
+    0x07, // 0 1 0 0 7
+    0x08, // 0 1 0 1 8
+    0x06, // 0 1 1 0 6
+    0x07, // 0 1 1 1 7
+    0x03, // 1 0 0 0 3
+    0x02, // 1 0 0 1 2
+    0x04, // 1 0 1 0 4
+    0x03, // 1 0 1 1 3
     0x00, // 1 1 0 0 0
-    0x10, // 1 1 0 1 1
-    0x50, // 1 1 1 0 5
+    0x01, // 1 1 0 1 1
+    0x05, // 1 1 1 0 5
     0x00, // 1 1 1 1 0
 };
 
-PROGMEM const char usbHidReportDescriptor[148] = {
+PROGMEM const char usbHidReportDescriptor[146] = {
 #else
-PROGMEM const char usbHidReportDescriptor[114] = {
+PROGMEM const char usbHidReportDescriptor[118] = {
 #endif
     // There are only buttons. So all input is digital.
 
@@ -69,12 +69,20 @@ PROGMEM const char usbHidReportDescriptor[114] = {
     0x09, 0x05, //   USAGE (Button 5), Y       -> West
     0x09, 0x0b, //   USAGE (Button 11), Select -> Select
     0x09, 0x0c, //   USAGE (Button 12), Start  -> Start
+#ifdef BTN_AB_LAYOUT_XBOX
+    0x09, 0x01, //   USAGE (Button 1), A       -> South
+#else
+    0x09, 0x02, //   USAGE (Button 2), A       -> East
+#endif
+    0x09, 0x04, //   USAGE (Button 4), X       -> North
+    0x09, 0x07, //   USAGE (Button 7), L       -> Trigger Left
+    0x09, 0x08, //   USAGE (Button 8), R       -> Trigger Right
     0x14,       //   LOGICAL_MINIMUM (0)
     0x25, 0x01, //   LOGICAL_MAXIMUM (1)
     0x34,       //   PHYSICAL_MINIMUM (0)
     0x45, 0x01, //   PHYSICAL_MAXIMUM (1)
     0x75, 0x01, //   REPORT_SIZE (1)
-    0x95, 0x04, //   REPORT_COUNT (4)
+    0x95, 0x08, //   REPORT_COUNT (8)
     0x81, 0x02, //   INPUT (Data,Var,Abs)
 
     0x05, 0x01, //   USAGE_PAGE (Generic Desktop)
@@ -95,22 +103,13 @@ PROGMEM const char usbHidReportDescriptor[114] = {
     0x09, 0x14, //     USAGE (Button 14), Down   -> Trigger Happy 4
     0x09, 0x11, //     USAGE (Button 15), Left   -> Trigger Happy 1
     0x09, 0x12, //     USAGE (Button 16), Right  -> Trigger Happy 2
+    0x95, 0x04, //     REPORT_COUNT (4)
     0x81, 0x02, //     INPUT (Data,Var,Abs)
 #endif
     0xc0,       //   END COLLECTION
 
 #ifdef BTN_DIRECTIONS_AS_DPAD
     0x05, 0x09, //   USAGE_PAGE (Button)
-#endif
-#ifdef BTN_AB_LAYOUT_XBOX
-    0x09, 0x01, //   USAGE (Button 1), A       -> South
-#else
-    0x09, 0x02, //   USAGE (Button 2), A       -> East
-#endif
-    0x09, 0x04, //   USAGE (Button 4), X       -> North
-    0x09, 0x07, //   USAGE (Button 7), L       -> Trigger Left
-    0x09, 0x08, //   USAGE (Button 8), R       -> Trigger Right
-#ifdef BTN_DIRECTIONS_AS_DPAD
     0x14,       //   LOGICAL_MINIMUM (0)
     0x25, 0x01, //   LOGICAL_MAXIMUM (1)
     0x45, 0x01, //   PHYSICAL_MAXIMUM (1)
@@ -118,7 +117,6 @@ PROGMEM const char usbHidReportDescriptor[114] = {
     0x75, 0x01, //   REPORT_SIZE (1)
     0x95, 0x04, //   REPORT_COUNT (4)
 #endif
-    0x81, 0x02, //   INPUT (Data,Var,Abs)
     0x81, 0x03, //   INPUT (Cnst,Var,Abs), Padding to reach two bytes
     0xc0,       // END_COLLECTION
 
@@ -135,6 +133,15 @@ PROGMEM const char usbHidReportDescriptor[114] = {
     0x09, 0x05, //   USAGE (Button 5), Y       -> West
     0x09, 0x0b, //   USAGE (Button 11), Select -> Select
     0x09, 0x0c, //   USAGE (Button 12), Start  -> Start
+#ifdef BTN_AB_LAYOUT_XBOX
+    0x09, 0x01, //   USAGE (Button 1), A       -> South
+#else
+    0x09, 0x02, //   USAGE (Button 2), A       -> East
+#endif
+    0x09, 0x04, //   USAGE (Button 4), X       -> North
+    0x09, 0x07, //   USAGE (Button 7), L       -> Trigger Left
+    0x09, 0x08, //   USAGE (Button 8), R       -> Trigger Right
+    0x95, 0x08, //   REPORT_COUNT (8)
     0x81, 0x02, //   INPUT (Data,Var,Abs)
 
     0x05, 0x01, //   USAGE_PAGE (Generic Desktop)
@@ -155,22 +162,13 @@ PROGMEM const char usbHidReportDescriptor[114] = {
     0x09, 0x14, //     USAGE (Button 14), Down   -> Trigger Happy 4
     0x09, 0x11, //     USAGE (Button 15), Left   -> Trigger Happy 1
     0x09, 0x12, //     USAGE (Button 16), Right  -> Trigger Happy 2
+    0x95, 0x04, //     REPORT_COUNT (4)
     0x81, 0x02, //     INPUT (Data,Var,Abs)
 #endif
     0xc0,       //   END COLLECTION
 
 #ifdef BTN_DIRECTIONS_AS_DPAD
     0x05, 0x09, //   USAGE_PAGE (Button)
-#endif
-#ifdef BTN_AB_LAYOUT_XBOX
-    0x09, 0x01, //   USAGE (Button 1), A       -> South
-#else
-    0x09, 0x02, //   USAGE (Button 2), A       -> East
-#endif
-    0x09, 0x04, //   USAGE (Button 4), X       -> North
-    0x09, 0x07, //   USAGE (Button 7), L       -> Trigger Left
-    0x09, 0x08, //   USAGE (Button 8), R       -> Trigger Right
-#ifdef BTN_DIRECTIONS_AS_DPAD
     0x14,       //   LOGICAL_MINIMUM (0)
     0x25, 0x01, //   LOGICAL_MAXIMUM (1)
     0x45, 0x01, //   PHYSICAL_MAXIMUM (1)
@@ -178,7 +176,6 @@ PROGMEM const char usbHidReportDescriptor[114] = {
     0x75, 0x01, //   REPORT_SIZE (1)
     0x95, 0x04, //   REPORT_COUNT (4)
 #endif
-    0x81, 0x02, //   INPUT (Data,Var,Abs)
     0x81, 0x03, //   INPUT (Cnst,Var,Abs), Padding to reach two bytes
     0xc0,       // END_COLLECTION
 };
@@ -309,10 +306,13 @@ static inline void snes_button_read() {
         // Clock high. Next button will be available on data.
         PORTB |= (1 << PORTB1);
     }
-#ifdef BTN_DIRECTIONS_AS_DPAD
     *button_state =
-        (*button_state & 0xff0f) |
-        pgm_read_byte(&dpad_keys_to_rotation[(*button_state >> 4) & 0x000f]);
+        (*button_state & 0x000f) |
+        (*button_state & 0x0f00) >> 4 |
+#ifdef BTN_DIRECTIONS_AS_DPAD
+        pgm_read_byte(&dpad_keys_to_rotation[(*button_state & 0x00f0) >> 4]) << 8;
+#else
+        (*button_state & 0x00f0) << 4;
 #endif
 }
 
