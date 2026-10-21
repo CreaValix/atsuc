@@ -55,11 +55,6 @@ PROGMEM const char usbHidReportDescriptor[148] = {
 PROGMEM const char usbHidReportDescriptor[114] = {
 #endif
     // There are only buttons. So all input is digital.
-    0x14,       // LOGICAL_MINIMUM (0)
-    0x25, 0x01, // LOGICAL_MAXIMUM (1)
-    0x34,       // PHYSICAL MINIMUM (0)
-    0x45, 0x01, // PHYSICAL MAXIMUM (1)
-    0x75, 0x01, // REPORT_SIZE (1)
 
     0x05, 0x01, // USAGE_PAGE (Generic Desktop)
     0x09, 0x05, // USAGE (Gamepad)
@@ -74,6 +69,11 @@ PROGMEM const char usbHidReportDescriptor[114] = {
     0x09, 0x05, //   USAGE (Button 5), Y       -> West
     0x09, 0x0b, //   USAGE (Button 11), Select -> Select
     0x09, 0x0c, //   USAGE (Button 12), Start  -> Start
+    0x14,       //   LOGICAL_MINIMUM (0)
+    0x25, 0x01, //   LOGICAL_MAXIMUM (1)
+    0x34,       //   PHYSICAL_MINIMUM (0)
+    0x45, 0x01, //   PHYSICAL_MAXIMUM (1)
+    0x75, 0x01, //   REPORT_SIZE (1)
     0x95, 0x04, //   REPORT_COUNT (4)
     0x81, 0x02, //   INPUT (Data,Var,Abs)
 
@@ -101,12 +101,6 @@ PROGMEM const char usbHidReportDescriptor[114] = {
 
 #ifdef BTN_DIRECTIONS_AS_DPAD
     0x05, 0x09, //   USAGE_PAGE (Button)
-    0x14,       //   LOGICAL_MINIMUM (0)
-    0x25, 0x01, //   LOGICAL_MAXIMUM (1)
-    0x45, 0x01, //   PHYSICAL MAXIMUM (1)
-    0x75, 0x01, //   REPORT_SIZE (1)
-    0x95, 0x04, //   REPORT_COUNT (4)
-    0x64,       //   UNIT (None)
 #endif
 #ifdef BTN_AB_LAYOUT_XBOX
     0x09, 0x01, //   USAGE (Button 1), A       -> South
@@ -116,6 +110,14 @@ PROGMEM const char usbHidReportDescriptor[114] = {
     0x09, 0x04, //   USAGE (Button 4), X       -> North
     0x09, 0x07, //   USAGE (Button 7), L       -> Trigger Left
     0x09, 0x08, //   USAGE (Button 8), R       -> Trigger Right
+#ifdef BTN_DIRECTIONS_AS_DPAD
+    0x14,       //   LOGICAL_MINIMUM (0)
+    0x25, 0x01, //   LOGICAL_MAXIMUM (1)
+    0x45, 0x01, //   PHYSICAL_MAXIMUM (1)
+    0x64,       //   UNIT (None)
+    0x75, 0x01, //   REPORT_SIZE (1)
+    0x95, 0x04, //   REPORT_COUNT (4)
+#endif
     0x81, 0x02, //   INPUT (Data,Var,Abs)
     0x81, 0x03, //   INPUT (Cnst,Var,Abs), Padding to reach two bytes
     0xc0,       // END_COLLECTION
@@ -159,12 +161,6 @@ PROGMEM const char usbHidReportDescriptor[114] = {
 
 #ifdef BTN_DIRECTIONS_AS_DPAD
     0x05, 0x09, //   USAGE_PAGE (Button)
-    0x14,       //   LOGICAL_MINIMUM (0)
-    0x25, 0x01, //   LOGICAL_MAXIMUM (1)
-    0x45, 0x01, //   PHYSICAL MAXIMUM (1)
-    0x75, 0x01, //   REPORT_SIZE (1)
-    0x95, 0x04, //   REPORT_COUNT (4)
-    0x64,       //   UNIT (None)
 #endif
 #ifdef BTN_AB_LAYOUT_XBOX
     0x09, 0x01, //   USAGE (Button 1), A       -> South
@@ -174,6 +170,14 @@ PROGMEM const char usbHidReportDescriptor[114] = {
     0x09, 0x04, //   USAGE (Button 4), X       -> North
     0x09, 0x07, //   USAGE (Button 7), L       -> Trigger Left
     0x09, 0x08, //   USAGE (Button 8), R       -> Trigger Right
+#ifdef BTN_DIRECTIONS_AS_DPAD
+    0x14,       //   LOGICAL_MINIMUM (0)
+    0x25, 0x01, //   LOGICAL_MAXIMUM (1)
+    0x45, 0x01, //   PHYSICAL_MAXIMUM (1)
+    0x64,       //   UNIT (None)
+    0x75, 0x01, //   REPORT_SIZE (1)
+    0x95, 0x04, //   REPORT_COUNT (4)
+#endif
     0x81, 0x02, //   INPUT (Data,Var,Abs)
     0x81, 0x03, //   INPUT (Cnst,Var,Abs), Padding to reach two bytes
     0xc0,       // END_COLLECTION
