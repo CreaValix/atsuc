@@ -225,14 +225,8 @@ int __attribute__((noreturn)) main(void) {
         WDTCSR |= (1 << WDIE);
 #endif
         usbPoll();
-#ifdef POWERSAVE
-        cli();
-#endif
         if (usbInterruptIsReady() && snes_read_status == STATE_SEND_DATA) {
             // USB TX buffer was just sent. Wait 7 ms and refill it.
-#ifdef POWERSAVE
-            sei();
-#endif
             // 1000 ms : (16.000.000 Hz : 1024 : 110) = 7,04 ms
             TCNT0 = 0;
             TCCR0A = (1 << CS02) | (1 << CS00);
@@ -249,7 +243,6 @@ int __attribute__((noreturn)) main(void) {
         }
 #ifdef POWERSAVE
         sleep_enable();
-        sei();
         sleep_cpu();
         sleep_disable();
         LED_TOGGLE;
