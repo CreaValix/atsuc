@@ -50,9 +50,9 @@ PROGMEM const char dpad_keys_to_rotation[16] = {
     0x00, // 1 1 1 1 0
 };
 
-PROGMEM const char usbHidReportDescriptor[150] = {
+PROGMEM const char usbHidReportDescriptor[148] = {
 #else
-PROGMEM const char usbHidReportDescriptor[116] = {
+PROGMEM const char usbHidReportDescriptor[114] = {
 #endif
     // There are only buttons. So all input is digital.
     0x14,       // LOGICAL_MINIMUM (0)
@@ -133,7 +133,6 @@ PROGMEM const char usbHidReportDescriptor[116] = {
     0x09, 0x05, //   USAGE (Button 5), Y       -> West
     0x09, 0x0b, //   USAGE (Button 11), Select -> Select
     0x09, 0x0c, //   USAGE (Button 12), Start  -> Start
-    0x95, 0x04, //   REPORT_COUNT (4)
     0x81, 0x02, //   INPUT (Data,Var,Abs)
 
     0x05, 0x01, //   USAGE_PAGE (Generic Desktop)
