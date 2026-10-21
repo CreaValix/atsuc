@@ -182,7 +182,6 @@ struct {
 } snes_reports[2] __attribute__((packed));
 uint8_t usb_report_id = 0;
 static inline void snes_button_read();
-uint8_t led = 0;
 volatile uint8_t timer0_alert = 0, usb_in1_polled = 0;
 int __attribute__((noreturn)) main(void) {
     wdt_enable(WDTO_1S);
@@ -221,12 +220,17 @@ int __attribute__((noreturn)) main(void) {
         WDTCSR |= (1 << WDIE);
 #endif
         usbPoll();
+        char unknown_interrupt = 1;
         if (usb_in1_polled) {
             usb_in1_polled = 0;
             // USB endpoint 1 was polled. (Re)set timer to read controller just before next poll.
             // 1000 ms : (16.000.000 Hz : 1024 : 120) = 7,68 ms
             TCNT0 = 0;
             TCCR0A = (1 << CS02) | (1 << CS00);
+            if (!snes_reports[usb_report_id].button_state) {
+                LED_OFF;
+            }
+            unknown_interrupt = 0;
         }
         if (timer0_alert) {
             timer0_alert = 0;
@@ -235,17 +239,19 @@ int __attribute__((noreturn)) main(void) {
                 LED_ON;
                 snes_button_read();
                 usbSetInterrupt((void *)&(snes_reports[usb_report_id]), sizeof(snes_reports[0]));
-                if (!snes_reports[usb_report_id].button_state) {
-                    LED_OFF;
-                }
             }
             usb_report_id = (usb_report_id + 1) % 2;
+            unknown_interrupt = 0;
+        }
+        if (unknown_interrupt) {
+            // Should be nothing else than watchdoch and other USB related wakeups.
+            // Creates a slow flashing if idle and rapid flashing on USB traffic.
+            LED_TOGGLE;
         }
 #ifdef POWERSAVE
         sleep_enable();
         sleep_cpu();
         sleep_disable();
-        LED_TOGGLE;
 #endif
     }
 }
