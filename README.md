@@ -71,15 +71,15 @@ All activity on the MCU is initiated by USB polling. When there is no USB
 activity, the MCU goes to power-down sleep and wakes up every 1s to toggle the
 LED.
 
-When there is an USB polling request a timer is started.
-It wakes up the device 7 ms later. The SNES controller's shift register is
-read. This takes aproximately 100 µS. The CPU goes back to sleep.
+When there is an USB polling request a timer is started to wake up 8 ms later.
+Then, the shift registers (= button states) of all attached SNES controller's
+are read. This takes aproximately 100 µS. The CPU goes back to sleep.
 
-USB polling is set to 10 ms. So, the next polling will be in about 2 ms
+USB polling is set to 10 ms. So, the next polling will be in about 1 ms
 (code needs about 1 ms). The USB request is answered with the previously read
 button configuration.
 
-Using the timer reduces the overall response time to about 2 ms.
+Using the timer reduces the overall response time to about 1 ms.
 
 The LED lights up during this process. Then a button is pressed, it stays on.
 When no button is pressed, it is turned off until the next polling cycle.

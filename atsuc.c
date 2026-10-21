@@ -201,7 +201,7 @@ int __attribute__((noreturn)) main(void) {
 #endif
 
     // Prepare timer 0 for SNES pad read wakeup
-    OCR0A = 110;
+    OCR0A = 120;
     TIMSK0 = (1 << OCIE0A);
 
     // Set up SNES pad pins
@@ -227,7 +227,7 @@ int __attribute__((noreturn)) main(void) {
         usbPoll();
         if (usbInterruptIsReady() && snes_read_status == STATE_SEND_DATA) {
             // USB TX buffer was just sent. Wait 7 ms and refill it.
-            // 1000 ms : (16.000.000 Hz : 1024 : 110) = 7,04 ms
+            // 1000 ms : (16.000.000 Hz : 1024 : 120) = 7,68 ms
             TCNT0 = 0;
             TCCR0A = (1 << CS02) | (1 << CS00);
             snes_read_status = STATE_WAIT_TIMER;
