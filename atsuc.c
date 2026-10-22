@@ -27,7 +27,7 @@ This is a mapping table from d-pad key presses (as array index) to multiples of 
 If two opposite direction keys are pressed, they are ignored.
 Output is pre-shifted to the higher nibble to fit in the HID report.
 */
-PROGMEM const char dpad_keys_to_rotation[16] = {
+PROGMEM const uint8_t dpad_keys_to_rotation[16] = {
     //       → ← ↓ ↑ direction
     0x00, // 0 0 0 0 0
     0x01, // 0 0 0 1 1
@@ -261,8 +261,8 @@ int main(void) {
 }
 
 uint8_t idle_rate = 0;
-usbMsgLen_t usbFunctionSetup(uchar data[8]) {
-    usbRequest_t *rq = (void *)data;
+usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
+    usbRequest_t *rq = (usbRequest_t *)data;
 
     // This code is taken from the V-USB HID mouse example.
     if ((rq->bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_CLASS) {
