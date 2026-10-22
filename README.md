@@ -81,6 +81,12 @@ button configuration.
 
 Using the timer reduces the overall response time to about 1 ms.
 
+Only controllers with changed buttons are reported. If no button was changed
+since the last USB poll cycle, no report is sent.
+Within each USB poll cycle, only one controller is reported. In the (rare) case
+when two or more controllers have changed button states, others will be
+reported in later cycles.
+
 The LED lights up during this process. Then a button is pressed, it stays on.
 When no button is pressed, it is turned off until the next polling cycle.
 

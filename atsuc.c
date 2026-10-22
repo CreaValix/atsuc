@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <string.h>
 
 #include <avr/io.h>
 #include <avr/wdt.h>
@@ -180,7 +181,7 @@ struct {
     uint8_t report_id;
     uint8_t report_data[2];
 } snes_reports[2] __attribute__((packed));
-uint16_t last_states[2];
+uint16_t button_states[2], last_states[2];
 uint8_t usb_report_id = 0;
 static inline uint8_t snes_button_read();
 volatile uint8_t timer0_alert = 0, usb_in1_polled = 0;
@@ -243,7 +244,6 @@ int __attribute__((noreturn)) main(void) {
                         (void *)&snes_reports[usb_report_id], sizeof(snes_reports[0]));
                 }
             }
-            usb_report_id = (usb_report_id + 1) % 2;
             unknown_interrupt = 0;
         }
         if (unknown_interrupt) {
@@ -279,7 +279,7 @@ usbMsgLen_t usbFunctionSetup(uchar data[8]) {
 }
 
 static inline uint8_t snes_button_read() {
-    uint16_t button_state = 0;
+    memset(button_states, 0x00, sizeof(button_states));
     // Latch high, clock high. First button available on data.
     PORTB |= (1 << PORTB0) | (1 << PORTB1);
 #ifndef TIMING_QUICK
@@ -294,8 +294,10 @@ static inline uint8_t snes_button_read() {
         // Waiting 5 µS twice gets very close to 12 µS clock cycle.
         _delay_us(5);
 #endif
-        button_state >>= 1;
-        button_state |= (((uint16_t)(~PINB)) << (11 - PINB2 - usb_report_id)) & 0x0800;
+        for (uint8_t i = 0; i < 2; i++) {
+            button_states[i] >>= 1;
+            button_states[i] |= (((uint16_t)(~PINB)) << (11 - PINB2 - i)) & 0x0800;
+        }
         // Clock low
         PORTB &= ~(1 << PORTB1);
 #ifndef TIMING_QUICK
@@ -307,17 +309,23 @@ static inline uint8_t snes_button_read() {
         // Clock high. Next button will be available on data.
         PORTB |= (1 << PORTB1);
     }
-    if (last_states[usb_report_id] != button_state) {
-        uint8_t *report_data = snes_reports[usb_report_id].report_data;
-        report_data[0] = (button_state & 0x000f) | (button_state & 0x0f00) >> 4;
+    uint8_t i = usb_report_id;
+    do {
+        i = (i + 1) % 2;
+        if (last_states[i] != button_states[i]) {
+            uint8_t *report_data = snes_reports[i].report_data;
+            uint16_t button_state = button_states[i];
+            report_data[0] = (button_state & 0x000f) | (button_state & 0x0f00) >> 4;
 #ifdef BTN_DIRECTIONS_AS_DPAD
-        report_data[1] = pgm_read_byte(&dpad_keys_to_rotation[(button_state & 0x00f0) >> 4]);
+            report_data[1] = pgm_read_byte(&dpad_keys_to_rotation[(button_state & 0x00f0) >> 4]);
 #else
-        report_data[1] = (button_state & 0x00f0) >> 4;
+            report_data[1] = (button_state & 0x00f0) >> 4;
 #endif
-        last_states[usb_report_id] = button_state;
-        return 1;
-    }
+            last_states[i] = button_state;
+            usb_report_id = i;
+            return 1;
+        }
+    } while (i != usb_report_id);
     return 0;
 }
 
