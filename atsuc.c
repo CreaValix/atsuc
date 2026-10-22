@@ -187,7 +187,7 @@ struct {
 uint8_t usb_report_id = 0;
 static inline void snes_button_read();
 uint8_t led = 0;
-volatile uint8_t snes_read_status = STATE_SEND_DATA;
+volatile uint8_t snes_read_status = STATE_SEND_DATA, usb_in1_polled = 0;
 int __attribute__((noreturn)) main(void) {
     wdt_enable(WDTO_1S);
 #ifdef POWERSAVE

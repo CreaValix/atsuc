@@ -1,0 +1,13 @@
+diff --git a/v-usb/usbdrv/asmcommon.inc b/v-usb/usbdrv/asmcommon.inc
+index 17fd32b..4785b60 100644
+--- a/v-usb/usbdrv/asmcommon.inc
++++ b/v-usb/usbdrv/asmcommon.inc
+@@ -166,6 +166,8 @@ handleIn1:                      ;[38]
+     cpi     x3, USB_CFG_EP3_NUMBER;[38]
+     breq    handleIn3           ;[39]
+ #endif
++    ldi     cnt, 1
++    sts     usb_in1_polled, cnt ;add +1+2 to next cycles
+     lds     cnt, usbTxLen1      ;[40]
+     sbrc    cnt, 4              ;[42] all handshake tokens have bit 4 set
+     rjmp    sendCntAndReti      ;[43] 47 + 16 = 63 until SOP

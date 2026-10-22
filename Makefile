@@ -15,6 +15,7 @@ atsuc.hex: atsuc.elf
 	avr-size $@
 
 atsuc.elf: $(OBJS)
+	grep -F -q usb_in1_polled v-usb/usbdrv/asmcommon.inc || patch --batch --forward -p1 < vusb-in1polled.patch
 	$(LINK.c) $(OBJS) $(LOADLIBES) $(LDLIBS) -o $@
 
 run: atsuc.hex
