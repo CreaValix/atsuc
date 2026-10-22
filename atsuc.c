@@ -230,12 +230,14 @@ int __attribute__((noreturn)) main(void) {
         }
         if (timer0_alert) {
             timer0_alert = 0;
-            // Timer rang. Read controller once.
-            LED_ON;
-            snes_button_read();
-            usbSetInterrupt((void *)&(snes_reports[usb_report_id]), sizeof(snes_reports[0]));
-            if (!snes_reports[usb_report_id].button_state) {
-                LED_OFF;
+            // Timer rang. Read controller once if buffer is free.
+            if (usbInterruptIsReady()) {
+                LED_ON;
+                snes_button_read();
+                usbSetInterrupt((void *)&(snes_reports[usb_report_id]), sizeof(snes_reports[0]));
+                if (!snes_reports[usb_report_id].button_state) {
+                    LED_OFF;
+                }
             }
             usb_report_id = (usb_report_id + 1) % 2;
         }
