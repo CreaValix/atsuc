@@ -16,14 +16,14 @@ The SNES controller's shift register is also read by bitbanging.
 You will need `make` and `avr-gcc` to build and the micronucleus commandline
 interface (if using MH-tiny) to upload the program.
 
-This build instruction focuses on tumbleweed. Debian-bases system should be
+This build instruction focuses on tumbleweed. Debian-based system should be
 similar.
 
 Install make and compiler and run `make` now to build. Probably there is a
-newer version than gcc 15:
+newer version than gcc 16:
 
 ```bash
-sudo zypper in avr-libc cross-avr-gcc15
+sudo zypper in avr-libc cross-avr-gcc16
 make
 ```
 
@@ -33,10 +33,10 @@ To upload the program, call the `run` make target:
 make run
 ```
 
-Clean up the installed RPMs if you don't need them anymore:
+Clean up the installed packages if you don't need them anymore:
 
 ```bash
-zypper rm -u make git-core make gcc libusb-compat-devel avr-libc cross-avr-gcc15
+zypper rm -u make git-core make gcc libusb-compat-devel avr-libc cross-avr-gcc16
 ```
 
 ## Hardware connection
@@ -113,6 +113,8 @@ This was tested with
 
 ## Ideas, known bugs and limitations
 
+* Switch HID profile with a combination of HD-tiny and controller buttons
+* Report more than one controller in one poll cycle
 * Additional power saving by switching controller +5 V through a GPIO
 * USB re-enumeration is not supported. Enumeration fails when the system is
   rebooted while the ATtiny is plugged in.
