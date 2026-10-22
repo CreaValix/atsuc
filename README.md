@@ -11,6 +11,14 @@ Towards the PC it enumerates as an USB HID device using the
 
 The SNES controller's shift register is also read by bitbanging.
 
+## Features
+
+* Simple and low-cost hardware requirements
+* Support for multiple controllers
+* Quick response times
+* Compatibility to modern game pads (except for the amount of buttons)
+* Power optimized firmware
+
 ## Building
 
 You will need `make` and `avr-gcc` to build and the micronucleus commandline
