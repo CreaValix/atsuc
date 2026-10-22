@@ -125,7 +125,6 @@ This was tested with
 
 ## Ideas, known bugs and limitations
 
-* Only two gamepads supported. Should be more.
 * Additional power saving by switching controller +5 V through a GPIO
 * USB re-enumeration is not supported. Enumeration fails when the system is
   rebooted while the ATtiny is plugged in.

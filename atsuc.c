@@ -180,8 +180,8 @@ PROGMEM const char usbHidReportDescriptor[118] = {
 struct {
     uint8_t report_id;
     uint8_t report_data[2];
-} snes_reports[2] __attribute__((packed));
-uint16_t button_states[2], last_states[2];
+} snes_reports[NUM_CONTROLLERS] __attribute__((packed));
+uint16_t button_states[NUM_CONTROLLERS], last_states[NUM_CONTROLLERS];
 uint8_t usb_report_id = 0;
 static inline uint8_t snes_button_read();
 volatile uint8_t timer0_alert = 0, usb_in1_polled = 0;
@@ -206,8 +206,9 @@ int __attribute__((noreturn)) main(void) {
     DDRB = (DDRB | (1 << DDB0) | (1 << DDB1)) & ~((1 << DDB2) | (1 << DDB3));
     LED_DIR_REG |= LED_DIR_PIN;
 
-    snes_reports[0].report_id = 1;
-    snes_reports[1].report_id = 2;
+    for (uint8_t i = 0; i < NUM_CONTROLLERS; i++) {
+        snes_reports[i].report_id = i + 1;
+    }
 
     usbInit();
     // Enforce re-enumeration, do this while interrupts are disabled.
@@ -294,7 +295,7 @@ static inline uint8_t snes_button_read() {
         // Waiting 5 µS twice gets very close to 12 µS clock cycle.
         _delay_us(5);
 #endif
-        for (uint8_t i = 0; i < 2; i++) {
+        for (uint8_t i = 0; i < NUM_CONTROLLERS; i++) {
             button_states[i] >>= 1;
             button_states[i] |= (((uint16_t)(~PINB)) << (11 - PINB2 - i)) & 0x0800;
         }
@@ -311,7 +312,7 @@ static inline uint8_t snes_button_read() {
     }
     uint8_t i = usb_report_id;
     do {
-        i = (i + 1) % 2;
+        i = (i + 1) % NUM_CONTROLLERS;
         if (last_states[i] != button_states[i]) {
             uint8_t *report_data = snes_reports[i].report_data;
             uint16_t button_state = button_states[i];
