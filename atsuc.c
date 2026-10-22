@@ -178,10 +178,11 @@ PROGMEM const char usbHidReportDescriptor[118] = {
 
 struct {
     uint8_t report_id;
-    uint16_t button_state;
+    uint8_t report_data[2];
 } snes_reports[2] __attribute__((packed));
+uint16_t last_states[2];
 uint8_t usb_report_id = 0;
-static inline void snes_button_read();
+static inline uint8_t snes_button_read();
 volatile uint8_t timer0_alert = 0, usb_in1_polled = 0;
 int __attribute__((noreturn)) main(void) {
     wdt_enable(WDTO_1S);
@@ -227,7 +228,7 @@ int __attribute__((noreturn)) main(void) {
             // 1000 ms : (16.000.000 Hz : 1024 : 120) = 7,68 ms
             TCNT0 = 0;
             TCCR0A = (1 << CS02) | (1 << CS00);
-            if (!snes_reports[usb_report_id].button_state) {
+            if (!last_states[usb_report_id]) {
                 LED_OFF;
             }
             unknown_interrupt = 0;
@@ -237,8 +238,10 @@ int __attribute__((noreturn)) main(void) {
             // Timer rang. Read controller once if buffer is free.
             if (usbInterruptIsReady()) {
                 LED_ON;
-                snes_button_read();
-                usbSetInterrupt((void *)&(snes_reports[usb_report_id]), sizeof(snes_reports[0]));
+                if (snes_button_read()) {
+                    usbSetInterrupt(
+                        (void *)&snes_reports[usb_report_id], sizeof(snes_reports[0]));
+                }
             }
             usb_report_id = (usb_report_id + 1) % 2;
             unknown_interrupt = 0;
@@ -275,9 +278,8 @@ usbMsgLen_t usbFunctionSetup(uchar data[8]) {
     return 0;
 }
 
-static inline void snes_button_read() {
-    uint16_t *button_state = &snes_reports[usb_report_id].button_state;
-    *button_state = 0;
+static inline uint8_t snes_button_read() {
+    uint16_t button_state = 0;
     // Latch high, clock high. First button available on data.
     PORTB |= (1 << PORTB0) | (1 << PORTB1);
 #ifndef TIMING_QUICK
@@ -292,8 +294,8 @@ static inline void snes_button_read() {
         // Waiting 5 µS twice gets very close to 12 µS clock cycle.
         _delay_us(5);
 #endif
-        *button_state >>= 1;
-        *button_state |= (((uint16_t)(~PINB)) << (11 - PINB2 - usb_report_id)) & 0x0800;
+        button_state >>= 1;
+        button_state |= (((uint16_t)(~PINB)) << (11 - PINB2 - usb_report_id)) & 0x0800;
         // Clock low
         PORTB &= ~(1 << PORTB1);
 #ifndef TIMING_QUICK
@@ -305,14 +307,18 @@ static inline void snes_button_read() {
         // Clock high. Next button will be available on data.
         PORTB |= (1 << PORTB1);
     }
-    *button_state =
-        (*button_state & 0x000f) |
-        (*button_state & 0x0f00) >> 4 |
+    if (last_states[usb_report_id] != button_state) {
+        uint8_t *report_data = snes_reports[usb_report_id].report_data;
+        report_data[0] = (button_state & 0x000f) | (button_state & 0x0f00) >> 4;
 #ifdef BTN_DIRECTIONS_AS_DPAD
-        pgm_read_byte(&dpad_keys_to_rotation[(*button_state & 0x00f0) >> 4]) << 8;
+        report_data[1] = pgm_read_byte(&dpad_keys_to_rotation[(button_state & 0x00f0) >> 4]);
 #else
-        (*button_state & 0x00f0) << 4;
+        report_data[1] = (button_state & 0x00f0) >> 4;
 #endif
+        last_states[usb_report_id] = button_state;
+        return 1;
+    }
+    return 0;
 }
 
 #ifdef POWERSAVE
