@@ -177,13 +177,13 @@ PROGMEM const char usbHidReportDescriptor[118] = {
     0xc0,       // END_COLLECTION
 };
 
-struct {
+struct snes_report_s {
     uint8_t report_id;
     uint8_t report_data[2];
 } __attribute__((packed)) snes_reports[NUM_CONTROLLERS];
 uint16_t button_states[NUM_CONTROLLERS], last_states[NUM_CONTROLLERS];
 uint8_t usb_report_id = 0;
-static inline uint8_t snes_button_read();
+static inline __attribute__((always_inline)) uint8_t snes_button_read();
 volatile uint8_t timer0_alert = 0, usb_in1_polled = 0;
 int main(void) {
     wdt_enable(WDTO_1S);
@@ -242,7 +242,7 @@ int main(void) {
                 LED_ON;
                 if (snes_button_read()) {
                     usbSetInterrupt(
-                        (void *)&snes_reports[usb_report_id], sizeof(snes_reports[0]));
+                        (void *)&snes_reports[usb_report_id], sizeof(struct snes_report_s));
                 }
             }
             unknown_interrupt = 0;
@@ -279,7 +279,7 @@ usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     return 0;
 }
 
-static inline uint8_t snes_button_read() {
+static inline __attribute__((always_inline)) uint8_t snes_button_read() {
     memset(button_states, 0x00, sizeof(button_states));
     // Latch high, clock high. First button available on data.
     PORTB |= (1 << PORTB0) | (1 << PORTB1);
@@ -296,8 +296,8 @@ static inline uint8_t snes_button_read() {
         _delay_us(5);
 #endif
         for (uint8_t i = 0; i < NUM_CONTROLLERS; i++) {
-            button_states[i] >>= 1;
-            button_states[i] |= (((uint16_t)(~PINB)) << (11 - PINB2 - i)) & 0x0800;
+            button_states[i] = button_states[i] >> 1 |
+                               ((((uint16_t)(~PINB)) << (11 - PINB2 - i)) & 0x0800);
         }
         // Clock low
         PORTB &= ~(1 << PORTB1);
