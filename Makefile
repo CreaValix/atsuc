@@ -8,13 +8,13 @@ TARGET_ARCH = -mmcu=$(DEVICE)
 TARGET_MACH = $(TARGET_ARCH)
 CFLAGS = -Iusbdrv -I. -DDEBUG_LEVEL=0 --param=min-pagesize=0 -Wall -Wstack-usage=10 -O2 -DF_CPU=$(F_CPU)
 ASFLAGS = $(CFLAGS)
-OBJS = usbdrv/usbdrv.o usbdrv/usbdrvasm.o atsuc.o
+OBJS = v-usb/usbdrv/usbdrv.o v-usb/usbdrv/usbdrvasm.o atsuc.o
 
 atsuc.hex: atsuc.elf
 	avr-objcopy -j .text -j .data -O ihex $< $@
 	avr-size $@
 
-atsuc.elf: usbdrv $(OBJS)
+atsuc.elf: $(OBJS)
 	$(LINK.c) $(OBJS) $(LOADLIBES) $(LDLIBS) -o $@
 
 run: atsuc.hex
@@ -22,8 +22,3 @@ run: atsuc.hex
 
 clean:
 	rm -rfv $(OBJS) atsuc.elf atsuc.hex
-
-usbdrv:
-	git clone --depth 1 --single-branch --branch $(VUSB_BRANCH) https://github.com/obdev/v-usb.git
-	mv v-usb/usbdrv .
-	rm -rf v-usb
