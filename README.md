@@ -19,18 +19,6 @@ interface (if using MH-tiny) to upload the program.
 This build instruction focuses on tumbleweed. Debian-bases system should be
 similar.
 
-First you'll need to build the `micronucleus` command line interface:
-
-```bash
-sudo zypper in git-core make gcc libusb-compat-devel
-curl -L https://github.com/micronucleus/micronucleus/archive/refs/tags/v2.6.tar.gz | tar xvz
-cd micronucleus-2.6/commandline
-sed -i -e 's/-static//g' -e "s|/usr/local|$HOME/.local|g" Makefile
-make install
-cd -
-rm -r micronucleus-2.6
-```
-
 Install make and compiler and run `make` now to build. Probably there is a
 newer version than gcc 15:
 

@@ -1,7 +1,8 @@
 VUSB_BRANCH = releases/20121206
 DEVICE = attiny88
 F_CPU = 16000000
-MICRONUCLEUS = micronucleus
+MICRONUCLEUS_DIR = micronucleus/commandline
+MICRONUCLEUS = $(MICRONUCLEUS_DIR)/micronucleus
 CC = avr-gcc
 
 TARGET_ARCH = -mmcu=$(DEVICE)
@@ -18,8 +19,15 @@ atsuc.elf: $(OBJS)
 	$(LINK.c) $(OBJS) $(LOADLIBES) $(LDLIBS) -o $@
 	avr-size $@
 
-run: atsuc.hex
+$(MICRONUCLEUS):
+	sed -i -E 's/^(\s)STATIC/\1#STATIC/g' $(MICRONUCLEUS_DIR)/Makefile
+	cd $(MICRONUCLEUS_DIR) && $(MAKE)
+
+run: $(MICRONUCLEUS) atsuc.hex
 	$(MICRONUCLEUS) --run $<
 
 clean:
 	rm -rfv $(OBJS) atsuc.elf atsuc.hex
+
+mrproper: clean
+	rm -rfv $(MICRONUCLEUS)
