@@ -12,6 +12,6 @@ button readout from ~160 µS to ~40 µS.
 #define POWERSAVE 1
 #define NUM_CONTROLLERS 2
 //#define BTN_AB_LAYOUT_XBOX 1
-//#define BTN_DIRECTIONS_AS_DPAD 1
+#define BTN_DIRECTIONS_AS_DPAD 1
 
 #endif
