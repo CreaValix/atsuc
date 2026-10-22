@@ -210,13 +210,13 @@ int __attribute__((noreturn)) main(void) {
         snes_reports[i].report_id = i + 1;
     }
 
+    sei();
     usbInit();
     // Enforce re-enumeration, do this while interrupts are disabled.
     usbDeviceDisconnect();
     // Fake USB disconnect for > 250 ms
     _delay_ms(260);
     usbDeviceConnect();
-    sei();
     for(;;) {
         wdt_reset();
 #ifdef POWERSAVE
