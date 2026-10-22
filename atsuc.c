@@ -19,9 +19,8 @@
 #define LED_OFF LED_OUT_REG &= ~LED_OUT_PIN
 #define LED_TOGGLE LED_OUT_REG ^= LED_OUT_PIN
 
-#define STATE_SEND_DATA 0
-#define STATE_WAIT_TIMER 1
-#define STATE_RESTART_TIMER 2
+#define STATE_WAIT_TIMER 0
+#define STATE_RESTART_TIMER 1
 
 #ifdef BTN_DIRECTIONS_AS_DPAD
 /*
@@ -187,7 +186,7 @@ struct {
 uint8_t usb_report_id = 0;
 static inline void snes_button_read();
 uint8_t led = 0;
-volatile uint8_t snes_read_status = STATE_SEND_DATA, usb_in1_polled = 0;
+volatile uint8_t snes_read_status = STATE_WAIT_TIMER, usb_in1_polled = 0;
 int __attribute__((noreturn)) main(void) {
     wdt_enable(WDTO_1S);
 #ifdef POWERSAVE
@@ -225,13 +224,15 @@ int __attribute__((noreturn)) main(void) {
         WDTCSR |= (1 << WDIE);
 #endif
         usbPoll();
-        if (usbInterruptIsReady() && snes_read_status == STATE_SEND_DATA) {
-            // USB TX buffer was just sent. Wait 7 ms and refill it.
+        if (usb_in1_polled) {
+            usb_in1_polled = 0;
+            // USB endpoint 1 was polled. (Re)set timer to read controller just before next poll.
             // 1000 ms : (16.000.000 Hz : 1024 : 120) = 7,68 ms
             TCNT0 = 0;
             TCCR0A = (1 << CS02) | (1 << CS00);
             snes_read_status = STATE_WAIT_TIMER;
-        } else if (snes_read_status == STATE_RESTART_TIMER) {
+        }
+        if (snes_read_status == STATE_RESTART_TIMER) {
             LED_ON;
             snes_button_read();
             usbSetInterrupt((void *)&(snes_reports[usb_report_id]), sizeof(snes_reports[0]));
@@ -239,7 +240,6 @@ int __attribute__((noreturn)) main(void) {
                 LED_OFF;
             }
             usb_report_id = (usb_report_id + 1) % 2;
-            snes_read_status = STATE_SEND_DATA;
         }
 #ifdef POWERSAVE
         sleep_enable();
