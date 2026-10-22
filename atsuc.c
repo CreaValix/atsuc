@@ -180,12 +180,12 @@ PROGMEM const char usbHidReportDescriptor[118] = {
 struct {
     uint8_t report_id;
     uint8_t report_data[2];
-} snes_reports[NUM_CONTROLLERS] __attribute__((packed));
+} __attribute__((packed)) snes_reports[NUM_CONTROLLERS];
 uint16_t button_states[NUM_CONTROLLERS], last_states[NUM_CONTROLLERS];
 uint8_t usb_report_id = 0;
 static inline uint8_t snes_button_read();
 volatile uint8_t timer0_alert = 0, usb_in1_polled = 0;
-int __attribute__((noreturn)) main(void) {
+int main(void) {
     wdt_enable(WDTO_1S);
 #ifdef POWERSAVE
     power_twi_disable();
