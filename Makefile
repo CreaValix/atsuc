@@ -12,11 +12,11 @@ OBJS = v-usb/usbdrv/usbdrv.o v-usb/usbdrv/usbdrvasm.o atsuc.o
 
 atsuc.hex: atsuc.elf
 	avr-objcopy -j .text -j .data -O ihex $< $@
-	avr-size $@
 
 atsuc.elf: $(OBJS)
 	grep -F -q usb_in1_polled v-usb/usbdrv/asmcommon.inc || patch --batch --forward -p1 < vusb-in1polled.patch
 	$(LINK.c) $(OBJS) $(LOADLIBES) $(LDLIBS) -o $@
+	avr-size $@
 
 run: atsuc.hex
 	$(MICRONUCLEUS) --run $<
