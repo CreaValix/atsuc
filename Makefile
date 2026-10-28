@@ -17,9 +17,13 @@ TARGET_MACH = $(TARGET_ARCH)
 
 all: atsuc.hex
 
+v-usb/usbdrv/usbdrv.c:
+	git submodule init v-usb
+	git submodule update v-usb
+	grep -F -q usb_in1_polled v-usb/usbdrv/asmcommon.inc || patch --batch --forward -p1 < vusb-in1polled.patch
+
 # Adopted built-in "%: %.o" rule
 atsuc.elf: $(OBJS)
-	grep -F -q usb_in1_polled v-usb/usbdrv/asmcommon.inc || patch --batch --forward -p1 < vusb-in1polled.patch
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 atsuc.hex: atsuc.elf
@@ -29,7 +33,11 @@ size: atsuc.elf
 	avr-size -B $<
 	avr-size --mcu=$(DEVICE) -C $<
 
-$(MICRONUCLEUS):
+$(MICRONUCLEUS_DIR):
+	git submodule init micronucleus
+	git submodule update micronucleus
+
+$(MICRONUCLEUS): $(MICRONUCLEUS_DIR)
 	sed -i -E 's/^(\s)STATIC/\1#STATIC/g' $(MICRONUCLEUS_DIR)/Makefile
 	cd $(MICRONUCLEUS_DIR) && $(MAKE)
 
