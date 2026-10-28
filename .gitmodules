@@ -4,3 +4,6 @@
 [submodule "micronucleus"]
 	path = micronucleus
 	url = https://github.com/micronucleus/micronucleus
+[submodule "hidrdd"]
+	path = hidrdd
+	url = https://github.com/abend0c1/hidrdd
