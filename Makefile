@@ -13,23 +13,25 @@ LDLIBS = -Wl,--print-memory-usage
 TARGET_ARCH = -mmcu=$(DEVICE)
 TARGET_MACH = $(TARGET_ARCH)
 
-.PHONY: size
+.PHONY: all size run clean mrproper
 
-atsuc.hex: atsuc.elf
-	avr-objcopy -j .text -j .data -O ihex $< $@
+all: atsuc.hex
 
 # Adopted built-in "%: %.o" rule
 atsuc.elf: $(OBJS)
 	grep -F -q usb_in1_polled v-usb/usbdrv/asmcommon.inc || patch --batch --forward -p1 < vusb-in1polled.patch
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
-$(MICRONUCLEUS):
-	sed -i -E 's/^(\s)STATIC/\1#STATIC/g' $(MICRONUCLEUS_DIR)/Makefile
-	cd $(MICRONUCLEUS_DIR) && $(MAKE)
+atsuc.hex: atsuc.elf
+	avr-objcopy -j .text -j .data -O ihex $< $@
 
 size: atsuc.elf
 	avr-size -B $<
 	avr-size --mcu=$(DEVICE) -C $<
+
+$(MICRONUCLEUS):
+	sed -i -E 's/^(\s)STATIC/\1#STATIC/g' $(MICRONUCLEUS_DIR)/Makefile
+	cd $(MICRONUCLEUS_DIR) && $(MAKE)
 
 run: $(MICRONUCLEUS) atsuc.hex
 	$(MICRONUCLEUS) --run $<
