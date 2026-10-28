@@ -104,6 +104,15 @@ This was tested with
 * Tumbleweed 20250923, Kernel 6.16.8-1-default.
 * Microsoft Windows 10.0.19045.2006
 
+### Verifying the USB HID report descriptor
+
+There is a Makefile target to decode the USB HID report descriptor using
+[RDD! HID Report Descriptor Decoder](https://github.com/abend0c1/hidrdd):
+
+```bash
+make hidcheck
+```
+
 ## Troubleshooting
 
 * The SNES controller's shift register is way faster than the SNES queries it.

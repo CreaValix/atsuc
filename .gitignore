@@ -2,3 +2,4 @@ usbdrv
 *.o
 *.elf
 *.hex
+hiddesc.bin

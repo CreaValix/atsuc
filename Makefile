@@ -4,6 +4,8 @@ F_CPU = 16000000
 MICRONUCLEUS_DIR = micronucleus/commandline
 MICRONUCLEUS = $(MICRONUCLEUS_DIR)/micronucleus
 OBJS = v-usb/usbdrv/usbdrv.o v-usb/usbdrv/usbdrvasm.o atsuc.o
+# See usbdrv.h for USB HID descriptor symbol
+HIDDESCSYM = usbDescriptorHidReport
 
 # Set variables used by built-in rules
 CC = avr-gcc
@@ -13,7 +15,7 @@ LDLIBS = -Wl,--print-memory-usage
 TARGET_ARCH = -mmcu=$(DEVICE)
 TARGET_MACH = $(TARGET_ARCH)
 
-.PHONY: all size run clean mrproper
+.PHONY: all size hidcheck run clean mrproper
 
 all: atsuc.hex
 
@@ -33,6 +35,17 @@ size: atsuc.elf
 	avr-size -B $<
 	avr-size --mcu=$(DEVICE) -C $<
 
+hidrdd/rd.rex:
+	git submodule init hidrdd
+	git submodule update hidrdd
+
+HIDDDPART = $(shell objdump -j .text -t $< | gawk '$$6=="$(HIDDESCSYM)"{print "skip="strtonum("0x"$$1)" count="strtonum("0x"$$5); exit}')
+hiddesc.bin: atsuc.elf
+	objcopy -j .text -O binary $< >(dd bs=1 $(HIDDDPART) of=$@)
+
+hidcheck: hiddesc.bin hidrdd/rd.rex
+	cd hidrdd; rexx rd.rex -b -f $${OLDPWD}/$<
+
 $(MICRONUCLEUS_DIR):
 	git submodule init micronucleus
 	git submodule update micronucleus
@@ -45,7 +58,7 @@ run: $(MICRONUCLEUS) atsuc.hex
 	$(MICRONUCLEUS) --run $<
 
 clean:
-	rm -rfv $(OBJS) atsuc.elf atsuc.hex
+	rm -rfv $(OBJS) atsuc.elf atsuc.hex hiddesc.bin
 
 mrproper: clean
 	rm -rfv $(MICRONUCLEUS)
