@@ -21,8 +21,8 @@ The SNES controller's shift register is also read by bitbanging.
 
 ## Building
 
-You will need `make` and `avr-gcc` to build and the micronucleus commandline
-interface (if using MH-tiny) to upload the program.
+You will need `make` and `avr-gcc` to build the firmware and `avrdude` to
+upload it to the MH-Tiny.
 
 This build instruction focuses on tumbleweed. Debian-based system should be
 similar.
@@ -31,20 +31,20 @@ Install make and compiler and run `make` now to build. Probably there is a
 newer version than gcc 16:
 
 ```bash
-sudo zypper in avr-libc cross-avr-gcc16
+sudo zypper in avr-libc cross-avr-gcc16 avrdude
 make
 ```
 
-To upload the program, call the `run` make target:
+To upload the program, call the `flash` make target:
 
 ```bash
-make run
+make flash
 ```
 
 Clean up the installed packages if you don't need them anymore:
 
 ```bash
-zypper rm -u make git-core make gcc libusb-compat-devel avr-libc cross-avr-gcc16
+zypper rm -u make git-core make gcc libusb-compat-devel avr-libc cross-avr-gcc16 avrdude
 ```
 
 ## Hardware connection
