@@ -1,4 +1,3 @@
-VUSB_BRANCH = releases/20121206
 DEVICE = attiny88
 F_CPU = 16000000
 MICRONUCLEUS_DIR = micronucleus/commandline
@@ -7,7 +6,7 @@ CC = avr-gcc
 
 TARGET_ARCH = -mmcu=$(DEVICE)
 TARGET_MACH = $(TARGET_ARCH)
-CFLAGS = -Iusbdrv -I. -DDEBUG_LEVEL=0 --param=min-pagesize=0 -Wall -Wstack-usage=10 -O2 -DF_CPU=$(F_CPU)
+CFLAGS = -Iv-usb/usbdrv -I. -DDEBUG_LEVEL=0 --param=min-pagesize=0 -Wall -Wstack-usage=10 -O2 -DF_CPU=$(F_CPU)
 ASFLAGS = $(CFLAGS)
 OBJS = v-usb/usbdrv/usbdrv.o v-usb/usbdrv/usbdrvasm.o atsuc.o
 
@@ -31,3 +30,4 @@ clean:
 
 mrproper: clean
 	rm -rfv $(MICRONUCLEUS)
+	git submodule deinit --all --force

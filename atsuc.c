@@ -10,7 +10,7 @@
 #include <avr/pgmspace.h>  // required by usbdrv.h
 
 #include "config.h"
-#include "usbdrv/usbdrv.h"
+#include "usbdrv.h"
 
 #define LED_DIR_REG DDRD
 #define LED_DIR_PIN (1 << DDD0)
