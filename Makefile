@@ -1,15 +1,17 @@
+# Set project specific variables
 DEVICE = attiny88
 F_CPU = 16000000
 MICRONUCLEUS_DIR = micronucleus/commandline
 MICRONUCLEUS = $(MICRONUCLEUS_DIR)/micronucleus
-CC = avr-gcc
+OBJS = v-usb/usbdrv/usbdrv.o v-usb/usbdrv/usbdrvasm.o atsuc.o
 
-TARGET_ARCH = -mmcu=$(DEVICE)
-TARGET_MACH = $(TARGET_ARCH)
-CFLAGS = -Iv-usb/usbdrv -I. -DDEBUG_LEVEL=0 --param=min-pagesize=0 -Wall -Wstack-usage=10 -O2 -DF_CPU=$(F_CPU)
+# Set variables used by built-in rules
+CC = avr-gcc
+CFLAGS = -DF_CPU=$(F_CPU) -DDEBUG_LEVEL=0 -Iv-usb/usbdrv -I. --param=min-pagesize=0 -O2 -Wall -Wstack-usage=10
 ASFLAGS = $(CFLAGS)
 LDLIBS = -Wl,--print-memory-usage
-OBJS = v-usb/usbdrv/usbdrv.o v-usb/usbdrv/usbdrvasm.o atsuc.o
+TARGET_ARCH = -mmcu=$(DEVICE)
+TARGET_MACH = $(TARGET_ARCH)
 
 .PHONY: size
 
