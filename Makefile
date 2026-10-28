@@ -8,7 +8,10 @@ TARGET_ARCH = -mmcu=$(DEVICE)
 TARGET_MACH = $(TARGET_ARCH)
 CFLAGS = -Iv-usb/usbdrv -I. -DDEBUG_LEVEL=0 --param=min-pagesize=0 -Wall -Wstack-usage=10 -O2 -DF_CPU=$(F_CPU)
 ASFLAGS = $(CFLAGS)
+LDLIBS = -Wl,--print-memory-usage
 OBJS = v-usb/usbdrv/usbdrv.o v-usb/usbdrv/usbdrvasm.o atsuc.o
+
+.PHONY: size
 
 atsuc.hex: atsuc.elf
 	avr-objcopy -j .text -j .data -O ihex $< $@
@@ -17,11 +20,14 @@ atsuc.hex: atsuc.elf
 atsuc.elf: $(OBJS)
 	grep -F -q usb_in1_polled v-usb/usbdrv/asmcommon.inc || patch --batch --forward -p1 < vusb-in1polled.patch
 	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -o $@
-	avr-size $@
 
 $(MICRONUCLEUS):
 	sed -i -E 's/^(\s)STATIC/\1#STATIC/g' $(MICRONUCLEUS_DIR)/Makefile
 	cd $(MICRONUCLEUS_DIR) && $(MAKE)
+
+size: atsuc.elf
+	avr-size -B $<
+	avr-size --mcu=$(DEVICE) -C $<
 
 run: $(MICRONUCLEUS) atsuc.hex
 	$(MICRONUCLEUS) --run $<
